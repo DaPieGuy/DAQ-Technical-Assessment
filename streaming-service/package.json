@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "fs": "^0.0.1-security",
     "ws": "^8.12.1"
   },
   "devDependencies": {

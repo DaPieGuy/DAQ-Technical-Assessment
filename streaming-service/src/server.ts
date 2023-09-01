@@ -1,5 +1,6 @@
 import net from 'net';
 import { WebSocket, WebSocketServer } from 'ws';
+import { handleLogging, isTempSafe, updateIncidents, JSON_ERR_FILE } from './backend';
 
 const TCP_PORT = parseInt(process.env.TCP_PORT || '12000', 10);
 
@@ -10,17 +11,23 @@ tcpServer.on('connection', (socket) => {
     console.log('TCP client connected');
     
     socket.on('data', (msg) => {
-        console.log(msg.toString());
+        let msgJSON: any;
+        
+        try {
+            msgJSON = JSON.parse(msg.toString());
+            console.log(msg.toString());
+        } catch (e) {
+            handleLogging(e, "Invalid JSON String:\n" + msg, JSON_ERR_FILE);
+            return;
+        }
 
-        // HINT: what happens if the JSON in the received message is formatted incorrectly?
-        // HINT: see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
-        let currJSON = JSON.parse(msg.toString());
+        updateIncidents(msgJSON.battery_temperature, new Date(msgJSON.timestamp));
+        msgJSON.is_temp_safe = isTempSafe(msgJSON.battery_temperature);
 
-        websocketServer.clients.forEach(function each(client) {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(msg.toString());
-            }
-          });
+        websocketServer.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN)
+                client.send(JSON.stringify(msgJSON));
+        });
     });
 
     socket.on('end', () => {
@@ -42,5 +49,3 @@ websocketServer.on('connection', async (ws: WebSocket) => {
 tcpServer.listen(TCP_PORT, () => {
     console.log(`TCP server listening on port ${TCP_PORT}`);
 });
-
-
