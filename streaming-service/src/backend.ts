@@ -27,7 +27,7 @@ function handleLogging(error: any, messageString: string, logFile: string) {
     console.error(error.message);
     fs.appendFile(logFile, `${new Date().toISOString()}: ${messageString}\n`, (err) => {
         if (err) {
-            console.error(`Error writing to ${logFile}:`, err);
+            console.error(`Could not log error to ${logFile}:`, err);
         }
     });
 }
@@ -63,4 +63,4 @@ function updateIncidents(temperature: number, timestamp: Date) {
     }
 }
 
-export { handleLogging, updateIncidents, isTempSafe, JSON_ERR_FILE };
+export { handleLogging, updateIncidents, isTempSafe, JSON_ERR_FILE, INCIDENTS_FILE, MAX_TEMP_INCIDENTS, SAFE_TEMPERATURE_MAX, SAFE_TEMPERATURE_MIN };

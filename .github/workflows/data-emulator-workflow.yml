@@ -3,7 +3,7 @@ name: data-emulator-workflow
 on: [push]
 
 jobs:
-  build:
+  lint:
 
     runs-on: ubuntu-latest
 
@@ -13,9 +13,24 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '18.x'
-      - name:  npm install, lint, and test
+      - name:  npm install, lint
         run: |
           cd data-emulator
           npm install
           npm run lint
-        #  npm test
+
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18.x'
+      - name:  npm install, test
+        run: |
+          cd data-emulator
+          npm install
+          npm run test
