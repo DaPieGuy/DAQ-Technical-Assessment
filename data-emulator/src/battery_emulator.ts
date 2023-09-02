@@ -61,3 +61,5 @@ tcpClient.on("connect", () => {
     console.log(`starting to generate and send emulated battery data every ${MILLISECONDS} milliseconds`)
     setInterval(generate_and_send_battery_data, MILLISECONDS);
 })
+
+export { generate_and_send_battery_data, tcpClient };
