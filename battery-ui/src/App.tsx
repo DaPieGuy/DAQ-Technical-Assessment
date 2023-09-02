@@ -1,15 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import LiveValue from './live_value';
-import LineChart from './line_chart';
-import RedbackLogo from './redback_logo.jpg';
+import Circle from './circle';
+import RedbackLogo from './redback_logo.png';
 import './App.css';
+import Plot from 'react-plotly.js';
+import { config, generateData, generateLayout } from './plot';
 
 function App() {
-  const [temperaturePoints, setTemperaturePoints] = useState<number[]>([]);
+  const [tempPoints, setTempPoints] = useState<number[]>([]);
+  const [timePoints, setTimePoints] = useState<number[]>([]);
   const [temperature, setTemperature] = useState<number>(0);
   const [isTempSafe, setTempSafe] = useState<boolean>(false);
 
   const ws: any = useRef(null);
+  const startTime: number = Date.now();
 
   useEffect(() => {
     // using the native browser WebSocket object
@@ -29,7 +33,14 @@ function App() {
 
       setTempSafe(message_obj["is_temp_safe"]);
       setTemperature(message_obj["battery_temperature"].toFixed(3));
-      setTemperaturePoints((prevData) => [...prevData, message_obj["battery_temperature"]]);
+      setTempPoints((prevData) => {
+        const newData = [...prevData, message_obj["battery_temperature"]];
+        return newData.slice(-20);
+      });
+      setTimePoints((prevData) => {
+        const newData = [...prevData, (message_obj["timestamp"] - startTime)/1000];
+        return newData.slice(-20);
+      });
     };
 
     ws.current = socket;
@@ -41,14 +52,22 @@ function App() {
 
   return (
     <div className="App">
-    <header className="App-header">
-    <img src={RedbackLogo} className="redback-logo" alt="Redback Racing Logo"/>
-      <p className='value-title'>
-        Live Battery Temperature
-      </p>
-      <LiveValue temp={temperature}/>
-      <div className={`circle ${isTempSafe ? 'green' : 'red'}`}></div>
-    </header>
+      <header className="App-header">
+      <img src={RedbackLogo} className="redback-logo" alt="Redback Racing Logo"/>
+        <p className='value-title'>
+          Live Battery Temperature
+        </p>
+        <p className='value-currtemp'>
+          Current:  
+        </p>
+        <LiveValue temp={temperature}/>
+        <Circle isTempSafe={isTempSafe}/>
+      </header>
+      <Plot
+       data={generateData(tempPoints, timePoints)}
+       layout={generateLayout(tempPoints)}
+       config={config}
+      />
     </div>
   );
 }
