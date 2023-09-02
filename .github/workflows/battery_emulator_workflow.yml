@@ -1,4 +1,4 @@
-name: battery_emulator_workflow
+name: data_emulator_workflow
 
 on: [push]
 
@@ -11,10 +11,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          path: data-emulator # Set the directory to data-emulator
+          path: . # Checkout into the current directory
+      - name: Change to data-emulator directory
+        run: cd data-emulator
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
-      - run: npm --prefix data-emulator run lint # Run npm commands in the data-emulator directory
-      # - run: npm --prefix data-emulator test # Run npm commands in the data-emulator directory
+      - run: npm run lint
+      #- run: npm test
