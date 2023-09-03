@@ -12,9 +12,7 @@ tcpServer.on('connection', (socket) => {
     
     socket.on('data', (msg) => {
         try {
-            console.log(msg.toString());
             let parsedMsg: string = parseBatteryJSON(msg.toString());
-            console.log(parsedMsg);
             [...websocketServer.clients]
                 .filter(client => client.readyState === WebSocket.OPEN)
                 .forEach(client => client.send(parsedMsg));

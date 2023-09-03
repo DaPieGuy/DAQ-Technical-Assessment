@@ -3,11 +3,12 @@ import './App.css';
 
 interface TemperatureProps {
   temp: number;
+  isSafe: boolean;
 }
 
-function LiveValue({ temp } : TemperatureProps) {
+function LiveValue({ temp, isSafe } : TemperatureProps) {
 
-  let valueColour = 'white';
+  let valueColour = (isSafe) ? 'green' : 'red';
 
   return (
       <header className="live-value" style={{ color : valueColour }}>

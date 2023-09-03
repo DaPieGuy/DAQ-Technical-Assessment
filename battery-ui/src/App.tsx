@@ -60,9 +60,9 @@ function App() {
 				<p className='value-title'>Live Battery Temperature</p>
 				<div className='right-aligned-content'>
 					<p className='value-temp-label'>Current:</p>
-					<LiveValue temp={parseFloat(latestSignature.temperature.toFixed(3))} />
+					<LiveValue temp={parseFloat(latestSignature.temperature.toFixed(3))} isSafe={latestSignature.isSafe}/>
 					<p className='value-temp-label'>Median:</p>
-					<LiveValue temp={parseFloat(medianSignature.temperature.toFixed(3))} />
+					<LiveValue temp={parseFloat(medianSignature.temperature.toFixed(3))} isSafe={medianSignature.isSafe}/>
 					<DataExportButton tempPoints={temperatures} timePoints={timestamps} />
 				</div>
 			</header>
