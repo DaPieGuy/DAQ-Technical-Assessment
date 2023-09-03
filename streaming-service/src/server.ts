@@ -1,6 +1,6 @@
 import net from 'net';
 import { WebSocket, WebSocketServer } from 'ws';
-import { handleLogging, isTempSafe, updateIncidents, JSON_ERR_FILE } from './backend';
+import { logError, parseBatteryJSON } from './backend';
 
 const TCP_PORT = parseInt(process.env.TCP_PORT || '12000', 10);
 
@@ -11,23 +11,17 @@ tcpServer.on('connection', (socket) => {
     console.log('TCP client connected');
     
     socket.on('data', (msg) => {
-        let msgJSON: any;
-        
         try {
-            msgJSON = JSON.parse(msg.toString());
             console.log(msg.toString());
-        } catch (e) {
-            handleLogging(e, "Invalid JSON String:\n" + msg, JSON_ERR_FILE);
-            return;
+            let parsedMsg: string = parseBatteryJSON(msg.toString());
+            console.log(parsedMsg);
+            [...websocketServer.clients]
+                .filter(client => client.readyState === WebSocket.OPEN)
+                .forEach(client => client.send(parsedMsg));
+        } catch (e: any) {
+            // Catches any errors thrown by parseBatteryJSON and logs them
+            logError(e);
         }
-
-        updateIncidents(msgJSON.battery_temperature, new Date(msgJSON.timestamp));
-        msgJSON.is_temp_safe = isTempSafe(msgJSON.battery_temperature);
-
-        websocketServer.clients.forEach(client => {
-            if (client.readyState === WebSocket.OPEN)
-                client.send(JSON.stringify(msgJSON));
-        });
     });
 
     socket.on('end', () => {

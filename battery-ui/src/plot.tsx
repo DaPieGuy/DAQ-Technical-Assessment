@@ -1,6 +1,3 @@
-import Plot from 'react-plotly.js';
-import React, { useState, useRef, useEffect } from 'react';
-
 const NUM_PLOT_POINTS = 20;
 
 const generateLayout = (tempPoints: any) => {
@@ -8,7 +5,7 @@ const generateLayout = (tempPoints: any) => {
 		plot_bgcolor: "#202020",
 		paper_bgcolor: "#202020",
 		xaxis: {
-			title: "Time since Initialization (s)",
+			title: "Time since Initialisation (s)",
 			showgrid: false,
 			titlefont: {
 				color: "white",
@@ -28,18 +25,10 @@ const generateLayout = (tempPoints: any) => {
 			},
 			range: [0, Math.max(100, Math.max(...tempPoints.slice(-NUM_PLOT_POINTS)))], // Adjust as needed
 		},
-		autosize: false,
-		width: 2000,
-		height: 950,
+		autosize: true,
+		responsive: true,
     };
-  };
-  
-  export default generateLayout;
-
-const config = {
-    displayModeBar: false,
-    staticPlot: true,
-}
+};
 
 function generateData(tempPoints: number[], timePoints: number[]) {
 	return [{
@@ -52,4 +41,13 @@ function generateData(tempPoints: number[], timePoints: number[]) {
 	}];
 }
 
-export { config, generateLayout, generateData };
+const config = {
+    displayModeBar: false,
+    staticPlot: true,
+}
+
+const style = {
+	height: '72vh',
+}
+
+export { config, generateLayout, generateData, style };

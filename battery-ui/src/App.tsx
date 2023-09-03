@@ -1,23 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
 import LiveValue from './live_value';
-import Circle from './circle';
 import RedbackLogo from './redback_logo.png';
 import './App.css';
 import Plot from 'react-plotly.js';
-import { config, generateData, generateLayout } from './plot';
+import { config, generateData, generateLayout, style } from './plot';
 import DataExportButton from './export_button';
 
+interface Signature {
+    timestamp: number;
+    temperature: number;
+    isSafe: boolean;
+}
+
 function App() {
-    const [tempPoints, setTempPoints] = useState<number[]>([]);
-    const [timePoints, setTimePoints] = useState<number[]>([]);
-    const [temperature, setTemperature] = useState<number>(0);
-    const [isTempSafe, setTempSafe] = useState<boolean>(false);
+	const [signatures, setSignatures] = useState<Signature[]>([]);
+	const [medianSignature, setMedianSignature] = useState<Signature>({
+		timestamp: Date.now(),
+		temperature: 0,
+		isSafe: false,
+	});
 
     const ws: any = useRef(null);
-    const startTime: number = Date.now();
 
     useEffect(() => {
-		// using the native browser WebSocket object
 		const socket: WebSocket = new WebSocket("ws://localhost:8080");
 
 		socket.onopen = () => {
@@ -31,11 +36,8 @@ function App() {
 		socket.onmessage = (event) => {
 			console.log("got message", event.data);
 			let message_obj = JSON.parse(event.data);
-
-			setTempSafe(message_obj["is_temp_safe"]);
-			setTemperature(message_obj["battery_temperature"].toFixed(3));
-			setTempPoints((prevData) => [...prevData, message_obj["battery_temperature"]]);
-			setTimePoints((prevData) => [...prevData, (message_obj["timestamp"] - startTime)/1000]);
+			setSignatures(message_obj["signatures"]);
+			setMedianSignature(message_obj["medianSignature"]);
 		};
 
       	ws.current = socket;
@@ -45,20 +47,30 @@ function App() {
 		};
     }, []);
 
+	// Extract the temperature and timestamp from signatures
+	const temperatures: number[] = signatures.map((signature) => signature.temperature);
+	const timestamps: number[] = signatures.map((signature) => (signature.timestamp - signatures[0].timestamp) / 1000);
+	const latestSignature: Signature = signatures.length !== 0
+		? signatures[signatures.length - 1] : { temperature: 0, timestamp: 0, isSafe: false};
+
     return (
 		<div className="App">
 			<header className="App-header">
-				<img src={RedbackLogo} className="redback-logo" alt="Redback Racing Logo"/>
+				<img src={RedbackLogo} className="redback-logo" alt="Redback Racing Logo" />
 				<p className='value-title'>Live Battery Temperature</p>
-				<p className='value-currtemp'>Current:</p>
-				<LiveValue temp={temperature}/>
-				<Circle isTempSafe={isTempSafe}/>
-				<DataExportButton tempPoints={tempPoints} timePoints={timePoints} />
+				<div className='right-aligned-content'>
+					<p className='value-temp-label'>Current:</p>
+					<LiveValue temp={parseFloat(latestSignature.temperature.toFixed(3))} />
+					<p className='value-temp-label'>Median:</p>
+					<LiveValue temp={parseFloat(medianSignature.temperature.toFixed(3))} />
+					<DataExportButton tempPoints={temperatures} timePoints={timestamps} />
+				</div>
 			</header>
 			<Plot
-				data={generateData(tempPoints, timePoints)}
-				layout={generateLayout(tempPoints)}
+				data={generateData(temperatures, timestamps)}
+				layout={generateLayout(temperatures)}
 				config={config}
+				style={style}
 			/>
 		</div>
     );

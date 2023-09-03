@@ -1,5 +1,9 @@
+html, body, #root, #app>div {
+  height: 100%
+}
+
 .App {
-  text-align: center;
+  justify-content: center;
   background-color: #202020;
   min-width: 100vw;
   min-height: 100vh;
@@ -7,18 +11,13 @@
 
 .App-header {
   background-color: #181717;
-  min-height: 10vh;
+  min-height: 10%;
   display: flex;
   flex-direction: row;
   align-items: center;
   font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   font-size: calc(10px + 2vmin);
   color: white;
-}
-
-.live-value {
-  color: white;
-  font-size: calc(25px + 2vmin);
 }
 
 .redback-logo {
@@ -31,25 +30,36 @@
   font-size: calc(25px + 2vmin);
 }
 
-.value-currtemp {
-  align-self: center;
+.right-aligned-content {
   margin-left: auto;
-  padding-right: 1%;
+  justify-content: right;
+  padding-right: 3%;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-grow: 1;
+}
+
+.value-temp-label {
   font-size: calc(25px + 2vmin);
 }
 
-.circle {
-  width: 20px; /* Adjust the circle size as needed */
-  height: 20px;
-  border-radius: 50%;
-  margin-right: 2%;
-  margin-left: 2%;
+.live-value {
+  width: 15%;
+  font-size: calc(25px + 2vmin);
 }
 
-.green {
-  background-color: green;
+.export-button {
+  background-color: #202020;
+  color: white;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-size: calc(15px + 1vmin);
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.red {
-  background-color: red;
+.export-button:hover {
+  background-color: #292929;
 }

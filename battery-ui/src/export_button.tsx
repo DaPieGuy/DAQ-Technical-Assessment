@@ -12,7 +12,7 @@ function DataExportButton({ tempPoints, timePoints }: DataExportButtonProps) {
             return;
         }
 
-        const csvData = `time (since initialization),temperature (degrees Celsius)\n` +
+        const csvData = `Time since Initialisation (s), Temperature (Degrees Celsius)\n` +
         tempPoints.map((temp, index) => `${timePoints[index]},${temp}`).join('\n');
         const blob = new Blob([csvData], { type: 'text/csv' });
 
@@ -30,7 +30,9 @@ function DataExportButton({ tempPoints, timePoints }: DataExportButtonProps) {
     };
 
     return (
-        <button onClick={handleExport}>Export Data</button>
+        <button onClick={handleExport} className="export-button">
+            Export
+        </button>
     );
 }
 
