@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/battery_emulator.ts",
+    "start": "./node_modules/.bin/ts-node src/battery_emulator.ts",
     "lint": "npx eslint",
     "test": "jest --testMatch '**/?(*.)+(test).ts'"
   },
