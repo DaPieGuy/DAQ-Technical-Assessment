@@ -19,4 +19,5 @@ EXPOSE 3000
 # Start your Node.js application
 CMD ["npm", "start"]
 
-# docker run -p 3000:3000 thepieguy/battery-ui:latest
+# docker run -d --network host thepieguy/battery-ui:latest
+# to run on linux locally
