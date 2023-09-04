@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { TemperatureError } from '../TemperatureError';
 import {
 	logError,
 	updateIncidents,
@@ -6,11 +7,10 @@ import {
 	ERRORS_FILE,
 	INCIDENTS_FILE,
 	MAX_TEMP_INCIDENTS,
-	SAFE_TEMPERATURE_MAX,
+    SAFE_TEMPERATURE_MAX,
 	SAFE_TEMPERATURE_MIN,
 	parseBatteryJSON,
 } from '../backend';
-import { TemperatureError } from '../TemperatureError';
 
 async function deleteLogFiles() {
 	if (fs.existsSync(ERRORS_FILE))

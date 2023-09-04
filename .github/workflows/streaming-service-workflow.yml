@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   lint:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +19,6 @@ jobs:
           npm run lint
 
   test:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -34,3 +32,19 @@ jobs:
           cd streaming-service
           npm install
           npm run test
+
+  docker_build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/streaming-service:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/streaming-service:latest
