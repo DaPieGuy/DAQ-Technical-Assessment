@@ -21,6 +21,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "arg": "^5.0.2"
+    "arg": "^5.0.2",
+    "ts-node": "^10.9.1"
   }
 }
