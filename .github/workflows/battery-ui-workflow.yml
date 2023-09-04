@@ -31,5 +31,6 @@ jobs:
 
       - name: Build and push Docker image
         run: |
+          cd battery-ui
           docker build -t ${{ secrets.DOCKER_USERNAME }}/battery-ui:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/battery-ui:latest

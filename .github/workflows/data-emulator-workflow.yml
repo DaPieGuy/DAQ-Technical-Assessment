@@ -46,5 +46,6 @@ jobs:
 
       - name: Build and push Docker image
         run: |
+          cd data-emulator
           docker build -t ${{ secrets.DOCKER_USERNAME }}/data-emulator:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/data-emulator:latest

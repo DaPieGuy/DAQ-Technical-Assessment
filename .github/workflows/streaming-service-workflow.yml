@@ -46,5 +46,6 @@ jobs:
 
       - name: Build and push Docker image
         run: |
+          cd streaming-service
           docker build -t ${{ secrets.DOCKER_USERNAME }}/streaming-service:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/streaming-service:latest
