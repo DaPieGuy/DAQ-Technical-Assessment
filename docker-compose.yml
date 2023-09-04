@@ -2,22 +2,23 @@ version: '3'
    
 services:
   data-emulator:
-    image: ${{ secrets.DOCKER_USERNAME }}/data-emulator:latest
+    image: thepieguy/data-emulator:latest
     ports:
       - "12000:12000"
     networks:
       - mynetwork
-    command: ["./wait-for-it.sh", "backend-streaming:8080", "--", "start_data_emulator_command"]
+    depends_on:
+      - streaming-service
 
   streaming-service:
-    image: ${{ secrets.DOCKER_USERNAME }}/streaming-service:latest
+    image: thepieguy/streaming-service:latest
     ports:
       - "8080:8080"
     networks:
       - mynetwork
 
   battery-ui:
-    image: ${{ secrets.DOCKER_USERNAME }}/battery-ui:latest
+    image: thepieguy/battery-ui:latest
     ports:
       - "80:80"
     networks:
