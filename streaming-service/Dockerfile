@@ -19,4 +19,4 @@ EXPOSE 8080
 # Start your Node.js application
 CMD ["npm", "start"]
 
-# docker run -p 8080:8080 battery-ui:latest
+# docker run -p 8080:8080 thepieguy/streaming-service:latest

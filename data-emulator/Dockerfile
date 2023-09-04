@@ -9,6 +9,7 @@ COPY package*.json ./
 
 # Install Node.js dependencies
 RUN npm install
+RUN npm install -g ts-node-dev
 
 # Copy the rest of your application code to the container
 COPY . .
@@ -19,4 +20,4 @@ EXPOSE 12000
 # Start your Node.js application
 CMD ["npm", "start"]
 
-# docker run -p 12000:12000 battery-ui:latest
+# docker run -p 12000:12000 thepieguy/data-emulator:latest
