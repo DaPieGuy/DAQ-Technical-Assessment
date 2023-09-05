@@ -30,14 +30,23 @@ const generateLayout = (tempPoints: any) => {
     };
 };
 
-function generateData(tempPoints: number[], timePoints: number[]) {
+function generateData(tempPoints: number[], timePoints: number[], colourPoints: string[]) {
 	return [{
 		y: tempPoints.slice(-NUM_PLOT_POINTS),
 		x: timePoints.slice(-NUM_PLOT_POINTS),
+		mode: 'lines+markers',
 		line: {
 			color: 'white',
 			width: 3
-		}
+		},
+		marker: {
+			color: colourPoints.slice(-NUM_PLOT_POINTS),
+			size: 10,
+			line: {
+			  color: colourPoints.slice(-NUM_PLOT_POINTS),
+			  width: 6
+			}
+		},
 	}];
 }
 

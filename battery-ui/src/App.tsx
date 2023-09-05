@@ -56,7 +56,9 @@ function App() {
     return (
 		<div className="App">
 			<header className="App-header">
-				<img src={RedbackLogo} className="redback-logo" alt="Redback Racing Logo" />
+				<a href="https://www.facebook.com/UNSWRedbackRacing/" target="_blank" rel="noopener noreferrer">
+        			<img src={RedbackLogo} className="redback-logo" alt="Redback Racing Logo" />
+      			</a>
 				<p className='value-title'>Live Battery Temperature</p>
 				<div className='right-aligned-content'>
 					<p className='value-temp-label'>Current:</p>
@@ -67,7 +69,7 @@ function App() {
 				</div>
 			</header>
 			<Plot
-				data={generateData(temperatures, timestamps)}
+				data={generateData(temperatures, timestamps, signatures.map((signature) => signature.isSafe ? 'green' : 'red'))}
 				layout={generateLayout(temperatures)}
 				config={config}
 				style={style}
