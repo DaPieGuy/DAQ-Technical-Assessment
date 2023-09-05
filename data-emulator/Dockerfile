@@ -18,6 +18,3 @@ EXPOSE 12000
 
 # Start your Node.js application
 CMD ["npm", "start"]
-
-# docker run -d --network host thepieguy/data-emulator:latest
-# to run on linux locally
