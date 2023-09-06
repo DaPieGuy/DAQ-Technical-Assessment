@@ -7,6 +7,7 @@ html, body, #root, #app>div {
   background-color: #202020;
   min-width: 100vw;
   min-height: 100vh;
+  color: white;
 }
 
 .App-header {
@@ -16,21 +17,10 @@ html, body, #root, #app>div {
   flex-direction: row;
   align-items: center;
   font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.redback-logo {
-  max-width: calc(200px + 1vmin);
-  display: flex;
-  align-self: center;
-}
-
-.value-title {
   font-size: calc(25px + 2vmin);
 }
 
-.right-aligned-content {
+.header-right {
   margin-left: auto;
   justify-content: right;
   padding-right: 3%;
@@ -40,8 +30,34 @@ html, body, #root, #app>div {
   flex-grow: 1;
 }
 
-.value-temp-label {
+.redback-logo {
+  max-width: calc(200px + 1vmin);
+  display: flex;
+  align-self: center;
+}
+
+.title {
   font-size: calc(25px + 2vmin);
+}
+
+.label {
+  font-size: calc(25px + 2vmin);
+}
+
+.log-label {
+  font-size: calc(10px + 1vmin);
+}
+
+.log-container {
+  margin-top: 1%;
+  padding-left: 1%;
+  padding-right: 1%;
+  background-color: #181717;
+}
+
+.graph-container {
+  flex-grow: 1;
+  display: flex;
 }
 
 .live-value {
@@ -51,7 +67,7 @@ html, body, #root, #app>div {
 
 .export-button {
   background-color: #202020;
-  color: white;
+  color: rgb(255, 255, 255);
   font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   font-size: calc(15px + 1vmin);
   padding: 10px 20px;

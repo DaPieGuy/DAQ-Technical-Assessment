@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Plot from 'react-plotly.js';
+import { LazyLog } from 'react-lazylog';
+
+import './App.css';
 import LiveValue from './live_value';
 import RedbackLogo from './redback_logo.png';
-import './App.css';
-import Plot from 'react-plotly.js';
-import { config, generateData, generateLayout, style } from './plot';
 import DataExportButton from './export_button';
+import { config, generateData, generateLayout, style } from './plot';
+import { generateStyle } from './log';
 
 interface Signature {
     timestamp: number;
@@ -13,6 +16,9 @@ interface Signature {
 }
 
 function App() {
+	const [smoothInterpolation, setSmoothInterpolation] = useState(false);
+	const [incidents, setIncidents] = useState<string>("");
+	const [errors, setErrors] = useState<string>("");
 	const [signatures, setSignatures] = useState<Signature[]>([]);
 	const [medianSignature, setMedianSignature] = useState<Signature>({
 		timestamp: Date.now(),
@@ -36,8 +42,15 @@ function App() {
 		socket.onmessage = (event) => {
 			console.log("got message", event.data);
 			let message_obj = JSON.parse(event.data);
-			setSignatures(message_obj["signatures"]);
-			setMedianSignature(message_obj["medianSignature"]);
+
+			if ("incidents.log" in message_obj) {
+				setIncidents(message_obj["incidents.log"]);
+			} else if ("errors.log" in message_obj) {
+				setErrors(message_obj["errors.log"]);
+			} else if ("signatures" in message_obj) {
+				setSignatures(message_obj["signatures"]);
+				setMedianSignature(message_obj["medianSignature"]);
+			}
 		};
 
       	ws.current = socket;
@@ -59,21 +72,36 @@ function App() {
 				<a href="https://www.facebook.com/UNSWRedbackRacing/" target="_blank" rel="noopener noreferrer">
         			<img src={RedbackLogo} className="redback-logo" alt="Redback Racing Logo" />
       			</a>
-				<p className='value-title'>Live Battery Temperature</p>
-				<div className='right-aligned-content'>
-					<p className='value-temp-label'>Current:</p>
+				<p className='title'>Live Battery Temperature</p>
+				<div className='header-right'>
+					<p className='label'>Current:</p>
 					<LiveValue temp={parseFloat(latestSignature.temperature.toFixed(3))} isSafe={latestSignature.isSafe}/>
-					<p className='value-temp-label'>Median:</p>
+					<p className='label'>Median:</p>
 					<LiveValue temp={parseFloat(medianSignature.temperature.toFixed(3))} isSafe={medianSignature.isSafe}/>
+					<button onClick={() => setSmoothInterpolation(!smoothInterpolation)} className="export-button">
+          				Toggle Interpolation
+        			</button>
 					<DataExportButton tempPoints={temperatures} timePoints={timestamps} />
 				</div>
 			</header>
-			<Plot
-				data={generateData(temperatures, timestamps, signatures.map((signature) => signature.isSafe ? 'green' : 'red'))}
-				layout={generateLayout(temperatures)}
-				config={config}
-				style={style}
-			/>
+			<div className='graph-container'>
+				<Plot
+					data={generateData(temperatures, timestamps, signatures.map((signature) => signature.isSafe ? 'green' : 'red'), smoothInterpolation)}
+					layout={generateLayout(temperatures)}
+					config={config}
+					style={style}
+				/>
+				<div className='log-container'>
+					<p className='log-label'>incidents.log:</p>
+					<div style={generateStyle()}>
+						<LazyLog text={incidents.length !== 0 ? incidents : 'No logged incidents\n'} caseInsensitive />
+					</div>
+					<p className='log-label'>errors.log:</p>
+					<div style={generateStyle()}>
+						<LazyLog text={errors.length !== 0 ? errors : 'No logged errors\n'} caseInsensitive />
+					</div>
+				</div>
+			</div>
 		</div>
     );
 }

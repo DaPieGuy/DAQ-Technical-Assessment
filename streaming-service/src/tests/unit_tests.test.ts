@@ -41,7 +41,7 @@ describe('isTempSafe function', () => {
 	});
 });
 
-describe('handleLogging function', () => {
+describe('logError function', () => {
     test('Success - Write the error message to the errors file', async () => {
         const error = new Error('Test Error');
     
@@ -65,7 +65,7 @@ describe('updateIncidents function', () => {
             await updateIncidents({ timestamp: Date.now(), temperature: SAFE_TEMPERATURE_MAX + 20, isSafe: false });
 
         const incidentsLogFileContents: string = await fs.promises.readFile(INCIDENTS_FILE, 'utf-8');
-        expect(incidentsLogFileContents).toContain('Temperature Threshold Exceeded');
+        expect(incidentsLogFileContents).toContain('Temperatures Exceeded');
     });
 
     test('Fail - Write error message to the incidents log file when the threshold is exceeded', async () => {
@@ -73,7 +73,7 @@ describe('updateIncidents function', () => {
             await updateIncidents({ timestamp: Date.now(), temperature: SAFE_TEMPERATURE_MAX + 20, isSafe: false });
 
         const incidentsLogFileContents: string = await fs.promises.readFile(INCIDENTS_FILE, 'utf-8');
-        expect(incidentsLogFileContents).toContain('Temperature Threshold Exceeded');
+        expect(incidentsLogFileContents).toContain('Temperatures Exceeded');
     });
 });
 

@@ -30,14 +30,16 @@ const generateLayout = (tempPoints: any) => {
     };
 };
 
-function generateData(tempPoints: number[], timePoints: number[], colourPoints: string[]) {
+function generateData(tempPoints: number[], timePoints: number[], colourPoints: string[], smooth: boolean) {
 	return [{
 		y: tempPoints.slice(-NUM_PLOT_POINTS),
 		x: timePoints.slice(-NUM_PLOT_POINTS),
 		mode: 'lines+markers',
 		line: {
 			color: 'white',
-			width: 3
+			width: 3,
+			shape: smooth ? 'spline' : 'line',
+			smoothing: 1.3
 		},
 		marker: {
 			color: colourPoints.slice(-NUM_PLOT_POINTS),
@@ -56,7 +58,8 @@ const config = {
 }
 
 const style = {
-	height: '72vh',
+	width: '80vw',
+	height: '80vh',
 }
 
 export { config, generateLayout, generateData, style };
