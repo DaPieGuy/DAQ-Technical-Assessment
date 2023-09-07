@@ -1,6 +1,16 @@
+import fs from 'fs';
 import net from 'net';
 import { WebSocket, WebSocketServer } from 'ws';
-import { ERRORS_FILE, INCIDENTS_FILE, getFileJSONString, logError, parseBatteryJSON } from './backend';
+import { TemperatureError } from './TemperatureError';
+import {
+    parseBatteryJSON,
+    getFileJSON,
+    logError,
+    incidentUpdate,
+    getIncidentDetails,
+    ERRORS_FILE,
+    INCIDENTS_FILE
+} from './backend';
 
 const TCP_PORT = parseInt(process.env.TCP_PORT || '12000', 10);
 
@@ -10,12 +20,14 @@ const websocketServer = new WebSocketServer({ port: 8080 });
 tcpServer.on('connection', (socket) => {
     console.log('TCP client connected');
     
-    socket.on('data', (msg) => {
+    socket.on('data', async (msg) => {
         try {
             sendToFrontend(parseBatteryJSON(msg.toString()));
         } catch (e: any) {
-            logError(e);
+            sendToFrontend(await logError(e));
         }
+        if (incidentUpdate())
+            sendToFrontend(await logError(new TemperatureError(getIncidentDetails())));
     });
 
     socket.on('end', () => {
@@ -31,9 +43,8 @@ websocketServer.on('listening', () => console.log('Websocket server started'));
 
 websocketServer.on('connection', async (ws: WebSocket) => {
     console.log('Frontend websocket client connected to websocket server');
-    sendToFrontend(getFileJSONString(ERRORS_FILE));
-    sendToFrontend(getFileJSONString(INCIDENTS_FILE));
     ws.on('error', console.error);  
+    initFrontend();
 });
 
 tcpServer.listen(TCP_PORT, () => {
@@ -50,4 +61,22 @@ function sendToFrontend(msg: string) {
         .forEach(client => client.send(msg));
 }
 
-export { sendToFrontend };
+/**
+ * Closes the TCP server and websocket servers.
+ */
+function closeServers() {
+    tcpServer.close();
+    websocketServer.close();
+}
+
+/**
+ * Initialises the frontend on websocket connection.
+ */
+function initFrontend() {
+    if (fs.existsSync(ERRORS_FILE))
+        sendToFrontend(getFileJSON(ERRORS_FILE));
+    if (fs.existsSync(INCIDENTS_FILE))
+        sendToFrontend(getFileJSON(INCIDENTS_FILE));
+}
+
+export { sendToFrontend, closeServers };

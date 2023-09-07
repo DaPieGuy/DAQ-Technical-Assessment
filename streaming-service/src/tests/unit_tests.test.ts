@@ -1,30 +1,40 @@
 import fs from 'fs';
 import { TemperatureError } from '../TemperatureError';
+import { closeServers } from '../server';
 import {
-	logError,
-	updateIncidents,
+	parseBatteryJSON,
+	incidentUpdate,
 	isTempSafe,
+	logError,
+    clearData,
+
 	ERRORS_FILE,
 	INCIDENTS_FILE,
-	MAX_TEMP_INCIDENTS,
     SAFE_TEMPERATURE_MAX,
 	SAFE_TEMPERATURE_MIN,
-	parseBatteryJSON,
+	MAX_UNSAFE_TEMPERATURES,
+    getIncidentDetails,
 } from '../backend';
 
 async function deleteLogFiles() {
 	if (fs.existsSync(ERRORS_FILE))
-		await fs.unlinkSync(ERRORS_FILE);
+		await fs.promises.unlink(ERRORS_FILE);
 	if (fs.existsSync(INCIDENTS_FILE))
-		await fs.unlinkSync(INCIDENTS_FILE);
+		await fs.promises.unlink(INCIDENTS_FILE);
 }
 
-beforeEach(() => {
-    deleteLogFiles();
+beforeEach(async () => {
+    await deleteLogFiles();
+    clearData();
 });
 
-afterEach(() => {
-    deleteLogFiles();
+afterEach(async() => {
+    await deleteLogFiles();
+    clearData();
+});
+
+afterAll(() => {
+    closeServers();
 });
 
 describe('isTempSafe function', () => {
@@ -59,21 +69,27 @@ describe('logError function', () => {
     });
 });
   
-describe('updateIncidents function', () => {
+describe('incidents logging test', () => {
     test('Success - Write error message to the incidents log file when the threshold is exceeded', async () => {
-        for (let i = 0; i < MAX_TEMP_INCIDENTS + 3; i++)
-            await updateIncidents({ timestamp: Date.now(), temperature: SAFE_TEMPERATURE_MAX + 20, isSafe: false });
-
-        const incidentsLogFileContents: string = await fs.promises.readFile(INCIDENTS_FILE, 'utf-8');
-        expect(incidentsLogFileContents).toContain('Temperatures Exceeded');
+        for (let i = 0; i < MAX_UNSAFE_TEMPERATURES + 1; i++)
+            parseBatteryJSON(JSON.stringify({
+                "battery_temperature": SAFE_TEMPERATURE_MIN - 1,
+                "timestamp": Date.now()
+            }));
+        
+        expect(incidentUpdate()).toStrictEqual(true);
+        const incidentDetails: string = getIncidentDetails();;
+        expect(incidentDetails).toEqual(expect.any(String));
     });
 
     test('Fail - Write error message to the incidents log file when the threshold is exceeded', async () => {
-        for (let i = 0; i < MAX_TEMP_INCIDENTS - 1; i++)
-            await updateIncidents({ timestamp: Date.now(), temperature: SAFE_TEMPERATURE_MAX + 20, isSafe: false });
-
-        const incidentsLogFileContents: string = await fs.promises.readFile(INCIDENTS_FILE, 'utf-8');
-        expect(incidentsLogFileContents).toContain('Temperatures Exceeded');
+        for (let i = 0; i < MAX_UNSAFE_TEMPERATURES - 1; i++)
+            parseBatteryJSON(JSON.stringify({
+                "battery_temperature": SAFE_TEMPERATURE_MIN - 1,
+                "timestamp": Date.now()
+            }));
+        
+        expect(incidentUpdate()).toStrictEqual(false);
     });
 });
 

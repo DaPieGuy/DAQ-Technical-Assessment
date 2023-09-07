@@ -17,8 +17,8 @@ interface Signature {
 
 function App() {
 	const [smoothInterpolation, setSmoothInterpolation] = useState(false);
-	const [incidents, setIncidents] = useState<string>("");
-	const [errors, setErrors] = useState<string>("");
+	const [incidents, setIncidents] = useState<string>('No logged incidents\n');
+	const [errors, setErrors] = useState<string>('No logged errors\n');
 	const [signatures, setSignatures] = useState<Signature[]>([]);
 	const [medianSignature, setMedianSignature] = useState<Signature>({
 		timestamp: Date.now(),
@@ -94,11 +94,11 @@ function App() {
 				<div className='log-container'>
 					<p className='log-label'>incidents.log:</p>
 					<div style={generateStyle()}>
-						<LazyLog text={incidents.length !== 0 ? incidents : 'No logged incidents\n'} caseInsensitive />
+						<LazyLog text={incidents} caseInsensitive />
 					</div>
 					<p className='log-label'>errors.log:</p>
 					<div style={generateStyle()}>
-						<LazyLog text={errors.length !== 0 ? errors : 'No logged errors\n'} caseInsensitive />
+						<LazyLog text={errors} caseInsensitive />
 					</div>
 				</div>
 			</div>

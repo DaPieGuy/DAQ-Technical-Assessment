@@ -1,6 +1,5 @@
 import fs from 'fs';
 import { TemperatureError } from './TemperatureError';
-import { sendToFrontend } from './server';
 
 const ERRORS_FILE = 'errors.log';
 const INCIDENTS_FILE = 'incidents.log';
@@ -8,8 +7,8 @@ const INCIDENTS_FILE = 'incidents.log';
 const SAFE_TEMPERATURE_MIN = 20;
 const SAFE_TEMPERATURE_MAX = 80;
 
-const TEMP_INCIDENT_WINDOW = 5000; //ms
-const MAX_TEMP_INCIDENTS = 3;
+const INCIDENT_WINDOW = 5000; //ms
+const MAX_UNSAFE_TEMPERATURES = 3;
 
 interface Signature {
     timestamp: number;
@@ -18,26 +17,23 @@ interface Signature {
 }
 
 const signatures: Signature[] = [];
-let incidents: Signature[] = [];
+let lastIncident: Signature[] = [];
 
 /**
- * Parses the given JSON string, returning a new JSON string with all the current signatures
- * and the median signature. Each signature includes the temperature, its' safety status, and
- * timestamp. Temperature incidents are logged and invalid JSON errors are thrown to the caller.
+ * Parses the given JSON string, returning a new JSON string with all the current
+ * signatures and the median signature. Each signature includes the temperature,
+ * its' safety status, and timestamp. Temperature incidents are logged and invalid
+ * JSON errors are thrown to the caller.
  * @param msg 
  * @returns string
  */
 function parseBatteryJSON(msg: string): string {
     const msgJSON = JSON.parse(msg.toString());
-    const signature: Signature = {
+    signatures.push({
         timestamp: msgJSON.timestamp,
         temperature: msgJSON.battery_temperature,
         isSafe: isTempSafe(msgJSON.battery_temperature)
-    };
-
-    signatures.push(signature);
-    if (signature.isSafe === false)
-        updateIncidents(signature);
+    });
 
     return (JSON.stringify({
         signatures: signatures,
@@ -47,23 +43,52 @@ function parseBatteryJSON(msg: string): string {
 }
 
 /**
- * Logs the given error to the appropriate file, creating a timestamp and forwarding to the
- * frontend. Will log any TemperatureError to the INCIDENTS_FILE and any other Error to the
- * ERRORS_FILE.
- * @param error
+ * Returns a stringified JSON object containing the contents of the given
+ * file under an appropriate key. The key will be the name of the file it
+ * was read from.
+ * @param filename 
+ * @returns string
  */
-function logError(error: Error) {
-    let logFile: string = error instanceof TemperatureError ? INCIDENTS_FILE : ERRORS_FILE;
-    fs.appendFile(logFile, `${new Date().toISOString()}:\n${error.message}\n\n`, (err) => {
-        if (err)
-            throw err;
-
-        sendToFrontend(getFileJSONString(logFile));
-    });
+function getFileJSON(logFile: string) {
+    const data: { [key: string]: string } = {};
+    data[logFile] = fs.readFileSync(logFile, 'utf8');
+    return JSON.stringify(data);
 }
 
 /**
- * Performs a temperature check to ensure the given temperature is within the safe range.
+ * If the number of unsafe temperatures in the INCIDENT_WINDOW exceeds the
+ * MAX_UNSAFE_TEMPERATURES, the most recent incident will be updated the
+ * function will return true.
+ * @param signature
+ * @returns boolean
+ */
+function incidentUpdate(): boolean {
+    const incident = signatures.filter(entry => Date.now() - entry.timestamp <=
+        INCIDENT_WINDOW && !entry.isSafe);
+    if (incident.length > MAX_UNSAFE_TEMPERATURES &&
+        JSON.stringify(incident) !== JSON.stringify(lastIncident)) {
+        lastIncident = incident;
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Returns a string containing the details of the most recent incident.
+ * @returns string
+ */
+function getIncidentDetails(): string {
+    const incidentDetails = lastIncident
+        .map(signature => `- ${signature.temperature.toFixed(3)
+        .padEnd(8, ' ')}°C at ${new Date(signature.timestamp)
+        .toISOString()}`).join('\n');
+    return (`Temperatures Exceeded ${lastIncident
+        .length} Times in ${INCIDENT_WINDOW}ms:\n${incidentDetails}`);
+}
+
+/**
+ * Performs a temperature check to ensure the given temperature is within the
+ * safe range.
  * @param temperature 
  * @returns boolean
  */
@@ -72,46 +97,38 @@ function isTempSafe(temperature: number): boolean {
 }
 
 /**
- * For each temperature in the TEMP_INCIDENT_WINDOW and outside of the safe temperature
- * range, an incident is formed. If the number of incidents exceeds MAX_TEMP_INCIDENTS,
- * a TemperatureError is logged to the INCIDENTS_FILE.
- * @param signature
+ * Logs the given error to the appropriate file and creates a timestamp. Will
+ * log any TemperatureError to the INCIDENTS_FILE and any other Error to the
+ * ERRORS_FILE. Returns the contents of the log file as a stringified JSON object.
+ * @param error
+ * @returns string
  */
-function updateIncidents(signature: Signature) {
-    incidents.push(signature);
-    incidents = incidents.filter(entry => Date.now() - entry.timestamp <= TEMP_INCIDENT_WINDOW);
-    if (incidents.length > MAX_TEMP_INCIDENTS) {
-        const incidentDetails = incidents
-        .map(incident => `- ${incident.temperature.toFixed(3).padEnd(8, ' ')}°C at ${new Date(incident.timestamp).toISOString()}`)
-        .join('\n');
-        logError(new TemperatureError(`Temperatures Exceeded ${incidents.length} Times in ${TEMP_INCIDENT_WINDOW}ms:\n${incidentDetails}`));
-    }
+async function logError(error: Error): Promise<string> {
+    const logFile: string = error instanceof TemperatureError ? INCIDENTS_FILE : ERRORS_FILE;
+    const logData = `${new Date().toISOString()}:\n${error.message}\n\n`;
+    await fs.promises.appendFile(logFile, logData);
+    return getFileJSON(logFile);
 }
 
 /**
- * Gets the contents of the given file, returning an empty string if the file does not
- * exist and a json string with the file name and contents if it does.
- * @param filename 
- * @returns string
+ * Clears the signatures and lastIncident arrays for testing purposes.
  */
-function getFileJSONString(logFile: string) {
-    if (fs.existsSync(logFile)) {
-        const data: { [key: string]: string } = {};
-        data[logFile] = fs.readFileSync(logFile, 'utf8');
-        return JSON.stringify(data);
-    }
-    return '';
+function clearData() {
+    signatures.length = 0;
+    lastIncident = [];
 }
 
 export {
     parseBatteryJSON,
-    logError,
+    getFileJSON,
+    incidentUpdate,
+    getIncidentDetails,
     isTempSafe,
-    updateIncidents,
-    getFileJSONString,
+    logError,
+    clearData,
     ERRORS_FILE,
     INCIDENTS_FILE,
-    MAX_TEMP_INCIDENTS,
+    MAX_UNSAFE_TEMPERATURES,
     SAFE_TEMPERATURE_MAX,
     SAFE_TEMPERATURE_MIN
 };
