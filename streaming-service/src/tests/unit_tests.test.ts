@@ -42,11 +42,11 @@ describe('isTempSafe function', () => {
 		expect(isTempSafe(SAFE_TEMPERATURE_MIN + 5)).toBe(true);
 	});
 
-	test('Fail - Should return false for temperatures below the safe range', () => {
+	test('Success - Should return false for temperatures below the safe range', () => {
 		expect(isTempSafe(SAFE_TEMPERATURE_MIN - 5)).toBe(false);
 	});
 
-	test('Fail - Should return false for temperatures above the safe range', () => {
+	test('Success - Should return false for temperatures above the safe range', () => {
 		expect(isTempSafe(SAFE_TEMPERATURE_MAX + 5)).toBe(false);
 	});
 });
@@ -68,30 +68,6 @@ describe('logError function', () => {
         expect(logFileContents).toContain('Test Error');
     });
 });
-  
-describe('incidents logging test', () => {
-    test('Success - Write error message to the incidents log file when the threshold is exceeded', async () => {
-        for (let i = 0; i < MAX_UNSAFE_TEMPERATURES + 1; i++)
-            parseBatteryJSON(JSON.stringify({
-                "battery_temperature": SAFE_TEMPERATURE_MIN - 1,
-                "timestamp": Date.now()
-            }));
-        
-        expect(incidentUpdate()).toStrictEqual(true);
-        const incidentDetails: string = getIncidentDetails();;
-        expect(incidentDetails).toEqual(expect.any(String));
-    });
-
-    test('Fail - Write error message to the incidents log file when the threshold is exceeded', async () => {
-        for (let i = 0; i < MAX_UNSAFE_TEMPERATURES - 1; i++)
-            parseBatteryJSON(JSON.stringify({
-                "battery_temperature": SAFE_TEMPERATURE_MIN - 1,
-                "timestamp": Date.now()
-            }));
-        
-        expect(incidentUpdate()).toStrictEqual(false);
-    });
-});
 
 describe('parseBatteryJSON function', () => {
 	test('Success - Expect to convert string to frontend format', async () => {
@@ -103,7 +79,31 @@ describe('parseBatteryJSON function', () => {
 		expect(result).toEqual(expectedOutput);
 	  });
 
-    test('Fail - Expect to throw error with invalid string', async () => {
+    test('Fail - Expect to convert string to frontend format', async () => {
         expect (() => parseBatteryJSON('{"battery_temperature":53.713094001803235,"timestamp":1693740870134}}')).toThrow();
+    });
+});
+
+describe('incidents update test', () => {
+    test('Success - Update the last incident array when temps exceed allowable threshold', async () => {
+        for (let i = 0; i < MAX_UNSAFE_TEMPERATURES + 1; i++)
+            parseBatteryJSON(JSON.stringify({
+                "battery_temperature": SAFE_TEMPERATURE_MIN - 1,
+                "timestamp": Date.now()
+            }));
+        
+        expect(incidentUpdate()).toStrictEqual(true);
+        const incidentDetails: string = getIncidentDetails();;
+        expect(incidentDetails).toEqual(expect.any(String));
+    });
+
+    test('Fail - Update the last incident array when temps exceed allowable threshold', async () => {
+        for (let i = 0; i < MAX_UNSAFE_TEMPERATURES - 1; i++)
+            parseBatteryJSON(JSON.stringify({
+                "battery_temperature": SAFE_TEMPERATURE_MIN - 1,
+                "timestamp": Date.now()
+            }));
+        
+        expect(incidentUpdate()).toStrictEqual(false);
     });
 });
