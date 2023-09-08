@@ -21,9 +21,7 @@ let lastIncident: Signature[] = [];
 
 /**
  * Parses the given JSON string, returning a new JSON string with all the current
- * signatures and the median signature. Each signature includes the temperature,
- * its' safety status, and timestamp. Temperature incidents are logged and invalid
- * JSON errors are thrown to the caller.
+ * signatures and the median signature - after adding the new data point.
  * @param msg 
  * @returns string
  */
@@ -34,11 +32,24 @@ function parseBatteryJSON(msg: string): string {
         temperature: msgJSON.battery_temperature,
         isSafe: isTempSafe(msgJSON.battery_temperature)
     });
+    return getTempsJSON();
+}
 
+/**
+ * Returns a stringified JSON object containing all temperature signatures
+ * and the median signature. Each signature includes the temperature, its'
+ * safety status, and timestamp.
+ * @returns string
+ */
+function getTempsJSON(): string {
     return (JSON.stringify({
         signatures: signatures,
         medianSignature: signatures.slice().sort((a, b) => a.temperature - b.temperature)
-		    [Math.floor(signatures.length / 2)] ?? { timestamp: null, temperature: 0, isSafe: false },
+		    [Math.floor(signatures.length / 2)] ?? {
+                timestamp: Date.now(),
+                temperature: 0,
+                isSafe: false
+        },
     }));
 }
 
@@ -49,7 +60,7 @@ function parseBatteryJSON(msg: string): string {
  * @param filename 
  * @returns string
  */
-function getFileJSON(logFile: string) {
+function getFileJSON(logFile: string): string {
     const data: { [key: string]: string } = {};
     data[logFile] = fs.readFileSync(logFile, 'utf8');
     return JSON.stringify(data);
@@ -104,7 +115,8 @@ function isTempSafe(temperature: number): boolean {
  * @returns string
  */
 async function logError(error: Error): Promise<string> {
-    const logFile: string = error instanceof TemperatureError ? INCIDENTS_FILE : ERRORS_FILE;
+    const logFile: string = error instanceof TemperatureError
+        ? INCIDENTS_FILE : ERRORS_FILE;
     const logData = `${new Date().toISOString()}:\n${error.message}\n\n`;
     await fs.promises.appendFile(logFile, logData);
     return getFileJSON(logFile);
@@ -120,6 +132,7 @@ function clearData() {
 
 export {
     parseBatteryJSON,
+    getTempsJSON,
     getFileJSON,
     incidentUpdate,
     getIncidentDetails,

@@ -9,7 +9,8 @@ import {
     incidentUpdate,
     getIncidentDetails,
     ERRORS_FILE,
-    INCIDENTS_FILE
+    INCIDENTS_FILE,
+    getTempsJSON
 } from './backend';
 
 const TCP_PORT = parseInt(process.env.TCP_PORT || '12000', 10);
@@ -77,6 +78,7 @@ function initFrontend() {
         sendToFrontend(getFileJSON(ERRORS_FILE));
     if (fs.existsSync(INCIDENTS_FILE))
         sendToFrontend(getFileJSON(INCIDENTS_FILE));
+    sendToFrontend(getTempsJSON());
 }
 
 export { sendToFrontend, closeServers };
